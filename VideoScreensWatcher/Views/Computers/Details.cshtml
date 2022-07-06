@@ -5,18 +5,11 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Details</h1>
+<h1>Журнал</h1>
 
 <div>
-    <h4>Computer</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Alias)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Alias)
-        </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.ComputerName)
         </dt>
@@ -35,9 +28,97 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.IsBlocked)
         </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Status)
+        </dt>
+        <dd class = "col-sm-10">
+            @{
+                        string CurrentStatus = "";
+                        switch(Model.Status)
+                        {
+                            case (int)Statuses.Blocked:
+                            CurrentStatus = "Заблокирован";
+                                break;
+                            case (int)Statuses.NotConnected:
+                            CurrentStatus = "Ошибка соединения";
+                                break;
+                            case (int)Statuses.Running:
+                            CurrentStatus = "Работает";
+                                break;
+                            case (int)Statuses.Stoped:
+                            CurrentStatus = "Остановлен";
+                                break;
+                            case (int)Statuses.Unblocked:
+                            CurrentStatus = "Разблокирован, ожидает данные";
+                                break;
+                        }
+                    } 
+                    @CurrentStatus
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Timeout)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Timeout)
+        </dd>
     </dl>
 </div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Logs[0].OnlineDateTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Logs[0].StatusChangedTo)
+            </th>
+<!--
+            <th></th>
+-->
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.Logs) {
+
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.OnlineDateTime)
+            </td>
+            <td>
+                 @{
+                        string status = "";
+                        switch(item.StatusChangedTo)
+                        {
+                            case (int)Statuses.Blocked:
+                            status = "Заблокирован";
+                                break;
+                            case (int)Statuses.NotConnected:
+                            status = "Ошибка соединения";
+                                break;
+                            case (int)Statuses.Running:
+                            status = "Работает";
+                                break;
+                            case (int)Statuses.Stoped:
+                            status = "Остановлен";
+                                break;
+                            case (int)Statuses.Unblocked:
+                            status = "Разблокирован, ожидает данные";
+                                break;
+                        }
+                    } 
+                    @status
+            </td>
+<!--
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+            -->
+        </tr>
+}
+    </tbody>
+</table>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>

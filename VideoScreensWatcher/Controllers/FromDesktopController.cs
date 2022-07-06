@@ -7,6 +7,7 @@ using VideoScreensWatcher.Models;
 
 namespace VideoScreensWatcher.Controllers
 {
+    //Этот контроллер принимает данные с десктопов и кладет в базу данных
     [Route("api/[controller]")]
     [ApiController]
     public class FromDesktopController : ControllerBase
@@ -36,6 +37,10 @@ namespace VideoScreensWatcher.Controllers
         [HttpPost]
         public async Task Post(ComputerWork message)
         {
+            //Что-то не то. не трогать базу данных
+            if (message.ComputerId == "")
+                return;
+
             //Ищем компьютер с нужным идентификатором
             var computer = _context.Computer?.FirstOrDefault(c => c.ComputerId == message.ComputerId);
             if (computer == null)
@@ -48,18 +53,18 @@ namespace VideoScreensWatcher.Controllers
                 newComputer.Timeout = message.Timeout;
                 if (message.IsRunning)
                 {
-                    newComputer.Status = Statuses.Running;
+                    newComputer.Status = (int)Statuses.Running;
                 }
                 else
                 {
-                    newComputer.Status = Statuses.Stoped;
+                    newComputer.Status = (int)Statuses.Stoped;
                 }
                 _context.Computer.Add(newComputer);
                 await _context.SaveChangesAsync();
 
                 //Добавление записи в журнал
                 OnlineLog log = new OnlineLog();
-                log.ComputerId = computer.Id;
+                log.ComputerId = newComputer.Id;
                 log.OnlineDateTime = DateTime.Now;
                 log.StatusChangedTo = newComputer.Status;
                 _context.OnlineLog.Add(log);
@@ -80,41 +85,35 @@ namespace VideoScreensWatcher.Controllers
                 computer.ComputerName = message.ComputerName;
                 if (message.IsRunning)
                 {
-                    computer.Status = Statuses.Running;
+                    computer.Status = (int)Statuses.Running;
                 }
                 else
                 {
-                    computer.Status = Statuses.Stoped;
+                    computer.Status = (int)Statuses.Stoped;
                 }
                 _context.Computer.Update(computer);
                 //Получение последней записи в журнале
-                OnlineLog lastLog = _context.OnlineLog.LastOrDefault(ol => ol.ComputerId == computer.Id);
+                OnlineLog? lastLog = _context.OnlineLog?.OrderBy(ol=>ol.OnlineDateTime).LastOrDefault(ol => ol.ComputerId == computer.Id);
                 if (lastLog == null)
                 {
                     //Если нет зписей в журнале - создать запись
-                    lastLog = new OnlineLog();
-                    lastLog.ComputerId = computer.Id;
-                    lastLog.OnlineDateTime = DateTime.Now;
-                    lastLog.StatusChangedTo = computer.Status;
-                    _context.Add(lastLog);
+                    var newLog = new OnlineLog();
+                    newLog.ComputerId = computer.Id;
+                    newLog.OnlineDateTime = DateTime.Now;
+                    newLog.StatusChangedTo = computer.Status;
+                    _context.OnlineLog.Add(newLog);
                 }
                 else
                 {
                     //Если eсть зпись в журнале
-                    if (lastLog.StatusChangedTo == computer.Status)
-                    {
-                        //обновить дату, если статус тот же
-                        lastLog.OnlineDateTime = DateTime.Now;
-                        _context.Update(lastLog);
-                    }
-                    else
+                    if (lastLog.StatusChangedTo != computer.Status)
                     {
                         //Если статус изменился - создать новую запись
                         var newLog = new OnlineLog();
                         newLog.ComputerId = computer.Id;
                         newLog.OnlineDateTime = DateTime.Now;
                         newLog.StatusChangedTo = computer.Status;
-                        _context.Add(lastLog);
+                        _context.OnlineLog.Add(newLog);
 
                     }
                 }

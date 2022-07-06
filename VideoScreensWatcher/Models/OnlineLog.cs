@@ -22,12 +22,14 @@ namespace VideoScreensWatcher.Models
         /// <summary>
         /// Дата и время пришедшего сообщения
         /// </summary>
+        [Display(Name = "Время изменениия статуса")]
         public DateTime OnlineDateTime { get; set; }
 
         /// <summary>
         /// статус десктопа изменен на
         /// </summary>
-        public Statuses StatusChangedTo { get; set; }
+        [Display(Name = "Статус изменен на")]
+        public int StatusChangedTo { get; set; }
 
     }
 }

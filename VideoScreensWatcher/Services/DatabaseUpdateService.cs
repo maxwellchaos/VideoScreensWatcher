@@ -5,7 +5,7 @@ namespace VideoScreensWatcher.Services
 {
     public class DatabaseUpdateService
     {
-        readonly int interval = 3000;
+        readonly int interval = 30000;
         Timer timer;
         private IServiceScopeFactory _serviceScopeFactory;
         
@@ -21,17 +21,18 @@ namespace VideoScreensWatcher.Services
             {
                 //Это можно оптимизировать написав один запрос к базе данных без цикла
                 //но сделаю это позже
+                //возможно
                 foreach (Computer computer in _context.Computer)
                 {
                     //Если компьютер не заблокирован и его статус не NotConnected
-                    if (!computer.IsBlocked && computer.Status != Statuses.NotConnected)
+                    if (!computer.IsBlocked && computer.Status != (int)Statuses.NotConnected)
                     {
-                        var log = _context.OnlineLog.LastOrDefault(log => log.ComputerId == computer.Id);
+                        var log = _context.OnlineLog.OrderBy(log=>log.OnlineDateTime).LastOrDefault(log => log.ComputerId == computer.Id);
                         //Если интервал превысил четырехкратный интервал обновления
                         if (log != null
-                            && (log.OnlineDateTime - DateTime.Now).Seconds > computer.Timeout * 4)
+                            && (DateTime.Now - log.OnlineDateTime).Seconds > computer.Timeout * 4)
                         {
-                            computer.Status = Statuses.NotConnected;
+                            computer.Status = (int)Statuses.NotConnected;
                             _context.Computer.Update(computer);
 
                             //Если статус изменился - создать новую запись

@@ -5,32 +5,28 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Index</h1>
+<h1>Список компьютеров</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
-</p>
-
-<p>
-    <a asp-action="Index">Обновить спиок</a>
+    <a asp-action="Index">Обновить страницу</a>
 </p>
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Alias)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.ComputerName)
+                <br>(
+                @Html.DisplayNameFor(model => model.ComputerId)
+                )
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ComputerId)
+                @Html.DisplayNameFor(model => model.Status)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.IsBlocked)
-            </th>  
+            </th>
             <th>
-                @Html.DisplayNameFor(model => model.Status)
+                @Html.DisplayNameFor(model => model.Timeout)
             </th>
             <th></th>
         </tr>
@@ -39,43 +35,50 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Alias)
-            </td>
-            <td>
                 @Html.DisplayFor(modelItem => item.ComputerName)
-            </td>
-            <td>
+           <br>(
                 @Html.DisplayFor(modelItem => item.ComputerId)
+           )
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.IsBlocked)
-            </td>
-            <td>
-                    @{
+                 @{
                         string status = "";
                         switch(item.Status)
                         {
-                            case Statuses.Blocked:
+                            case (int)Statuses.Blocked:
                             status = "Заблокирован";
                                 break;
-                            case Statuses.NotConnected:
+                            case (int)Statuses.NotConnected:
                             status = "Ошибка соединения";
                                 break;
-                            case Statuses.Running:
+                            case (int)Statuses.Running:
                             status = "Работает";
                                 break;
-                            case Statuses.Stoped:
+                            case (int)Statuses.Stoped:
                             status = "Остановлен";
+                                break;
+                            case (int)Statuses.Unblocked:
+                            status = "Разблокирован, ожидает данные";
                                 break;
                         }
                     } 
                     @status
-                
+            </td>
+             <td>
+                    @if (item.IsBlocked)
+                    {
+                        <a asp-action="Unblock" asp-route-id="@item.Id">Заблокирован</a>
+                    }
+                    else
+                    {
+                        <a asp-action="Block" asp-route-id="@item.Id">Разблокирован</a>
+                    }
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                @Html.DisplayFor(modelItem => item.Timeout)
+            </td>
+            <td>
+                <a asp-action="Details" asp-route-id="@item.Id">История</a> 
             </td>
         </tr>
 }
