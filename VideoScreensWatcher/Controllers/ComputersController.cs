@@ -22,9 +22,9 @@ namespace VideoScreensWatcher.Controllers
         // GET: Computers
         public async Task<IActionResult> Index()
         {
-              return _context.Computer != null ? 
-                          View(await _context.Computer.ToListAsync()) :
-                          Problem("Entity set 'VideoScreensWatcherContext.Computer'  is null.");
+            return _context.Computer != null ?
+                        View(await _context.Computer.ToListAsync()) :
+                        Problem("Entity set 'VideoScreensWatcherContext.Computer'  is null.");
         }
 
         // GET: Computers/Details/5
@@ -36,13 +36,12 @@ namespace VideoScreensWatcher.Controllers
             }
 
             var computer = await _context.Computer
-                .Include(comp => comp.Logs.OrderByDescending(log =>log.OnlineDateTime))
+                .Include(comp => comp.Logs.OrderByDescending(log => log.OnlineDateTime))
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (computer == null)
             {
                 return NotFound();
             }
-            //computer.Logs.OrderBy(log => log.OnlineDateTime);
 
             return View(computer);
         }
@@ -55,23 +54,10 @@ namespace VideoScreensWatcher.Controllers
                 return NotFound();
             }
 
-            var computer = await _context.Computer
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (computer == null)
-            {
-                return NotFound();
-            }
+            var computer = await _context.Computer.FirstOrDefaultAsync(m => m.Id == id);
 
-            computer.IsBlocked = true;
-            computer.Status = (int)Statuses.Blocked;
-            _context.Computer.Update(computer);
+            Computer.UpdateStatus(_context, computer, Statuses.Blocked);
 
-            OnlineLog log = new OnlineLog();
-            log.ComputerId = computer.Id;
-            log.OnlineDateTime = DateTime.Now;
-            log.StatusChangedTo = computer.Status;
-            _context.OnlineLog.Add(log);
-            
             await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
@@ -90,16 +76,7 @@ namespace VideoScreensWatcher.Controllers
             {
                 return NotFound();
             }
-
-            computer.IsBlocked = false;
-            computer.Status = (int)Statuses.Unblocked;
-            _context.Computer.Update(computer);
-
-            OnlineLog log = new OnlineLog();
-            log.ComputerId = computer.Id;
-            log.OnlineDateTime = DateTime.Now;
-            log.StatusChangedTo = computer.Status;
-            _context.OnlineLog.Add(log);
+            Computer.UpdateStatus(_context, computer, Statuses.Unblocked);
 
             await _context.SaveChangesAsync();
 

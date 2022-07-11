@@ -72,51 +72,11 @@ namespace VideoScreensWatcher.Controllers
             else
             {
                 //Если запись о компьютере есть
-
-                //Если компьютер заблокирован
-                if (computer.IsBlocked)
-                {
-                    //Выйти
-                    return;
-                }
+                Computer.UpdateStatus(_context, computer, Statuses.Running);
 
                 //Обновление данных
                 computer.Timeout = message.Timeout;
                 computer.ComputerName = message.ComputerName;
-                if (message.IsRunning)
-                {
-                    computer.Status = (int)Statuses.Running;
-                }
-                else
-                {
-                    computer.Status = (int)Statuses.Stoped;
-                }
-                _context.Computer.Update(computer);
-                //Получение последней записи в журнале
-                OnlineLog? lastLog = _context.OnlineLog?.OrderBy(ol=>ol.OnlineDateTime).LastOrDefault(ol => ol.ComputerId == computer.Id);
-                if (lastLog == null)
-                {
-                    //Если нет зписей в журнале - создать запись
-                    var newLog = new OnlineLog();
-                    newLog.ComputerId = computer.Id;
-                    newLog.OnlineDateTime = DateTime.Now;
-                    newLog.StatusChangedTo = computer.Status;
-                    _context.OnlineLog.Add(newLog);
-                }
-                else
-                {
-                    //Если eсть зпись в журнале
-                    if (lastLog.StatusChangedTo != computer.Status)
-                    {
-                        //Если статус изменился - создать новую запись
-                        var newLog = new OnlineLog();
-                        newLog.ComputerId = computer.Id;
-                        newLog.OnlineDateTime = DateTime.Now;
-                        newLog.StatusChangedTo = computer.Status;
-                        _context.OnlineLog.Add(newLog);
-
-                    }
-                }
                 await _context.SaveChangesAsync();
             }
         }

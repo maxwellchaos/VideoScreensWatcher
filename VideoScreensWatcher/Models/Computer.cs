@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using VideoScreensWatcher.Data;
 
 namespace VideoScreensWatcher.Models
 {
@@ -59,5 +60,46 @@ namespace VideoScreensWatcher.Models
 
         //Ссылка на журнал
         public List<OnlineLog>? Logs { get; set; }
-}
+
+        /// <summary>
+        /// Дата последнего изменения статуса
+        /// </summary>  
+
+        public DateTime LastChangeStatusDate { get; set; }
+
+        /// <summary>
+        /// Обновляет статус компьютера в контексте и добавляет в журнал, не записывает в БД
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="ComputerId"></param>
+        /// <param name="NewStatus"></param>
+        public static void UpdateStatus(VideoScreensWatcherContext context, Computer computer, Statuses NewStatus)
+        {
+
+            if (computer == null)
+                return;
+            if (computer.IsBlocked && NewStatus != Statuses.Unblocked)
+                return;
+            if (computer.Status != (int)NewStatus)
+            {
+                computer.LastChangeStatusDate = DateTime.Now;
+                computer.Status = (int)NewStatus;
+                if (computer.IsBlocked && NewStatus == Statuses.Unblocked)
+                {
+                    computer.IsBlocked = false;
+                }
+                if (!computer.IsBlocked && NewStatus == Statuses.Blocked)
+                {
+                    computer.IsBlocked = true;
+                }
+                context.Update(computer);
+
+                OnlineLog log = new OnlineLog();
+                log.ComputerId = computer.Id;
+                log.OnlineDateTime = DateTime.Now;
+                log.StatusChangedTo = (int)NewStatus;
+                context.Add(log);
+            }
+        }
+    }
 }
